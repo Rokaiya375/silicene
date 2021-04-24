@@ -1,0 +1,475 @@
+clc;
+close all;
+
+%----------------------------------------------------------------
+%Measurement of Quantum capacitance
+%------------------------------------------------------------------
+
+%-------------------------------------
+%All Calculations are in "Meter" form 
+%-------------------------------------
+
+
+%-------------------------------------
+%Finger Consideration & Constants
+%-------------------------------------
+
+
+u=4000e-4;%  Mobility 
+u1=(1000e-4);
+L_g=.2e-6; %Gate Length  
+L_g1=1e-6;
+L_ext=0.1e-6; %Extended length
+L_ext1=0.8e-8;
+W_g=10e-6; %Finger Width/gate width
+W_g1=1e-6;
+N=200; %Number of Finger
+
+
+ % Finger Consideration
+Finger=L_g.*W_g.*N*1e7;
+Finger1=L_g1.*W_g1.*N*1e7;
+%-------------------------------
+%Constants
+%-------------------------------
+
+
+eQ=1.6e-19;%electron charge
+vf=1.1e6; %Fermi velocity
+vf1=5.21e5;
+h=6.626e-34;
+h_cut=h/(2*pi);
+
+%Exploartion
+V_ch=-.3:.01:.3;
+n_g_1=((eQ.*V_ch)./(h_cut*vf*sqrt(pi))).^2;
+n_g_2=((eQ.*V_ch)./(h_cut*vf1*sqrt(pi))).^2;
+k=1.38e-23;
+T=300;%room temp
+C_q_1=2.303.*(((2.*(eQ^2).*k.*T)/((h_cut.*vf)^2).*pi)).*log(2.*(1+cosh(eQ.*V_ch./(k.*T)))).*Finger;
+C_q_2=2.303.*(((2.*(eQ^2).*k.*T)/((h_cut.*vf1)^2).*pi)).*log(2.*(1+cosh(eQ.*V_ch./(k.*T)))).*Finger1;
+
+
+%n_g=-30:1:30;%carrier concentration due to gate potential..........
+n_g=-30:1:30;
+n_s=0;
+
+n_total=sqrt(abs(n_g)+abs(n_s));
+
+%n_total=-30:30;
+
+C_q=((2*eQ^2)./(h_cut*vf*sqrt(pi)))*n_total.*Finger;
+C_q1=((2*eQ^2)./(h_cut*vf1*sqrt(pi)))*n_total.*Finger1;
+
+%C_q=((2.*eQ.*eQ)./(h_cut.*vf.*sqrt(pi))).*sqrt(abs(n_g)).*Finger;
+
+
+figure
+plot(n_g,C_q,'blue',n_g,C_q1,'red','linewidth',2);
+xlabel('Carrier Concentration (x10^1^2/cm^2)');
+ylabel('Quantum Capacitance (F)');
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+
+
+%-------------------------------
+%Oxide Capacitance
+%-------------------------------
+
+
+
+e_o=8.854e-12;
+EOT=0.5e-9;%Effective oxide thickness of silicene 6A
+EOT1=.6e-9;
+C_ox=(3.9*e_o/EOT).*Finger;
+C_ox1=(3.9*e_o/EOT1).*Finger1;
+
+%---------------------------------
+%capacitancee equivalent
+%---------------------------------
+
+C_eq=(C_ox.*C_q)./(C_ox+C_q);
+C_eq1=(C_ox1.*C_q1)./(C_ox1+C_q1);
+
+%tr=C_eq/6.1250e-06;
+figure
+plot(n_g,C_eq,'blue',n_g,C_eq1,'red','linewidth',2);
+xlabel('Carrier Concentration(x10^1^2/cm^2)');
+ylabel('Capacitance');
+legend('graphene','silicene','Linewidth',2);
+
+grid on;
+tr=C_eq./2.74e-11;  
+tr1=C_eq1./2.74e-11;
+
+figure
+[haxes,hline1,hline2]=plotyy(n_g,C_eq,n_g,tr,'plot','plot'); 
+ylabel(haxes(1),'Capacitance (F)')   %   l a b e l   l e f t   y - a x i s
+ylabel(haxes(2),'Tuning Ratio')   %   l a b e l   r i g h t   y - a x i s
+xlabel(haxes(2),'Carrier Concentration (x10^1^2/cm^2)') %   l a b e l   x - a x i s
+set(hline1,'LineWidth',2) ;
+set(hline2,'LineStyle','--','LineWidth',2);
+legend('capacitance','tuning ratio','Linewidth',2);
+grid on;
+
+figure
+[haxes1,hline11,hline21]=plotyy(n_g,C_eq1,n_g,tr1,'plot','plot'); 
+ylabel(haxes1(1),'Capacitance (F)')   %   l a b e l   l e f t   y - a x i s
+ylabel(haxes1(2),'Tuning Ratio')   %   l a b e l   r i g h t   y - a x i s
+xlabel(haxes1(2),'Carrier Concentration (x10^1^2/cm^2)') %   l a b e l   x - a x i s
+set(hline11,'LineWidth',2) ;
+set(hline21,'LineStyle','--','LineWidth',2);
+legend('capacitance','tuning ratio','Linewidth',2);
+grid on;
+
+
+%--------------------------------------
+% Oxide Cap VS EOT  $$$$ EXTRA $$$$$
+%-------------------------------------
+ET=1:8;
+C_o=(3.9*e_o./ET).*Finger.*1e9;
+C_o1=(3.9*e_o./ET).*Finger1.*1e9;
+
+figure
+plot(ET,C_o,'blue',ET,C_o1,'red','linewidth',2);
+
+xlabel('EOT(nm)');
+ylabel('Oxide Capacitance');
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+
+
+%---------------------------------
+%frequency
+%---------------------------------
+f=1e9;
+%f_1=0.829;
+L=2.5e-7;
+L1=1.7e-7;
+C_0=0.1e-12;
+C_01=0.15e-12; % silicene capacitance
+
+f1=1./(2.*pi.*sqrt(L.*C_eq));
+f11=1./(2.*pi.*sqrt(L1.*C_eq1));
+
+figure
+plot(n_g,f1,'blue',n_g,f11,'red','linewidth',2);
+
+xlabel('Carrier Concentration (x10^1^2/cm^2)');
+ylabel('Frequency');
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+%------------------------------------------------------
+  %Normanlized Frequency VS Carrier Concentration
+%------------------------------------------------------
+
+f2=f1./f;
+%f21=f11./f_1;
+f21=f11./f;
+
+figure
+plot(n_g,f2,'blue',n_g,f21,'red','linewidth',2);
+xlabel('Carrier Concentration (x10^1^2/cm^2)')
+ylabel('f/f (Normalized Frequency)')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+%-------------------------------------------------
+           % Frequency VS Capacitance 
+%-------------------------------------------------
+
+figure
+%plot(C_eq,f1)
+plot(C_eq,f1,'blue',C_eq1,f11,'red','linewidth',2);
+
+xlabel('Capacitance')
+ylabel('Frequency')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+figure
+%loglog(C_eq,f1)
+loglog(C_eq,f1,'blue',C_eq1,f11,'red','Linewidth',2)
+title('Frequency VS Capacitance (Log-Log)')
+xlabel('Capacitance')
+ylabel('Frequency')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+figure
+[haxes,hline1,hline2]=plotyy(n_g,C_eq,n_g,f1,'plot','plot'); 
+ylabel(haxes(1),'Capacitance')   %   l a b e l   l e f t   y - a x i s
+ylabel(haxes(2),'Frequency')   %   l a b e l   r i g h t   y - a x i s
+xlabel(haxes(2),'Carrier Concentration (x10^1^2/cm^2)') %   l a b e l   x - a x i s
+set(hline1,'LineWidth',2) ;
+set(hline2,'LineStyle','--','LineWidth',2);
+legend('capacitance','frequency','Linewidth',2);
+grid on;
+
+figure
+[haxes1,hline11,hline21]=plotyy(n_g,C_eq1,n_g,f11,'plot','plot'); 
+ylabel(haxes1(1),'Capacitance')   %   l a b e l   l e f t   y - a x i s
+ylabel(haxes1(2),'Frequency')   %   l a b e l   r i g h t   y - a x i s
+xlabel(haxes1(2),'Carrier Concentration (x10^1^2/cm^2)') %   l a b e l   x - a x i s
+set(hline11,'LineWidth',2) ;
+set(hline21,'LineStyle','--','LineWidth',2);
+legend('capacitance','frequency','Linewidth',2);
+grid on;
+
+
+%-------------------------------------------------
+           % Normalized Frequency VS Capacitance 
+%-------------------------------------------------
+
+figure
+%plot(C_eq,f2)
+plot(C_eq,f2,'blue',C_eq1,f21,'red','linewidth',2);
+xlabel('Capacitance')
+ylabel('f/f (Normalized Frequency)')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+figure
+%loglog(C_eq,f2)
+loglog(C_eq,f2,'blue',C_eq1,f21,'red','linewidth',2);
+title('Normalized Frequency VS Capacitance (Log-Log)')
+xlabel('Capacitance')
+ylabel('Frequency')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+%---------------------------------------
+%Resistance
+%---------------------------------------
+Resist_Finger=((L_g+2.*L_ext)./(W_g.*N)).*1e-14; % 1.5e-4 Resitance consideraation due to finger
+%Resist_Finger= 1.5e-4.*1e-13; % Due to carrier concentration (x10^1^3)
+Resist_Finger1=((L_g1+2.*L_ext1)./(W_g1.*N)).*1e-14;%silicene
+
+R_c= 200e-6./(L_g+2.*L_ext); %contact resistance
+R_c1= 200e-6./(L_g1+2.*L_ext1);%silicene
+
+
+R_c_1= 200e-6;
+R_c_11= 200e-6;%silicene
+
+R_ch=Resist_Finger./(4.*eQ.*u.*n_total); % Channel Resistance
+R_ch1=Resist_Finger1./(4.*eQ.*u1.*n_total);%silicene
+
+G_gl=10.^(13.35-EOT).*L_g.*W_g.*N; % Parallel Conductance
+G_gl1=10.^(13.35-EOT1).*L_g1.*W_g1.*N;%silicene
+
+R_gl=1./G_gl; %  Resitance
+R_gl1=1./G_gl1;
+
+% Experimental
+R_s=((L_g+L_ext)./(4.*W_g).*(1./(eQ.*2.*n_total.*u))+(R_c_1./W_g))./N;
+R_s1=((L_g1+L_ext1)./(4.*W_g1).*(1./(eQ.*2.*n_total.*u1))+(R_c_11./W_g1))./N; %silicene
+
+
+figure
+%plot(n_g,R_s)
+plot(n_g,R_s,'blue',n_g,R_s1,'red','linewidth',2);
+xlabel('Carrier Concentration (x10^1^3)')
+ylabel('Series Resistance')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+
+R_tot=(R_c+ R_ch);
+%R_s=;
+R_tot1=(R_c1+ R_ch1);%silicene
+
+
+%plot(n_g,R_tot)
+plot(n_g,R_tot,'blue',n_g,R_tot1,'red','linewidth',2);
+xlabel('Carrier Concentration (x10^1^3)')
+ylabel('Resistance')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+%plot(n_g,R_ch)
+plot(n_g,R_ch,'blue',n_g,R_ch1,'red','linewidth',2);
+xlabel('Carrier Concentration (x10^1^3)')
+ylabel('Channel Resistance')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+
+%---------------------------------------
+%Quality factor
+%---------------------------------------
+
+f=1e9; % Constant Frequency
+
+q=1.0./(2.0*pi.*f1.*C_eq.*R_tot); % Quanlity Factor
+%q=(sqrt(L./C_eq))./R_tot;
+q1=1.0./(2.0*pi.*f11.*C_eq1.*R_tot1); %silicene
+
+figure
+plot(n_g,q,'blue',n_g,q1,'red','linewidth',2);
+
+xlabel('Carrier Concentration (x10^1^3)')
+ylabel('Quality Factor')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+figure
+imagesc(n_g,C_eq,q)
+title('Capacitance and Q versus concentration')
+xlabel('Concentration')
+ylabel('Capacitance')
+legend('graphene','silicene','Linewidth',2);
+grid on;
+%hold on
+%plot(n_g,C_eq)
+
+
+tr=C_eq./C_0;
+tr1=C_eq1./C_01;%Silicene
+
+figure
+[haxes,hline1,hline2]=plotyy(C_eq,q,C_eq,tr,'plot','plot'); 
+ylabel(haxes(1),'Quality Factor')   %   l a b e l   l e f t   y - a x i s
+ylabel(haxes(2),'Tuning Ratio')   %   l a b e l   r i g h t   y - a x i s
+xlabel(haxes(2),'Capacitance') %   l a b e l   x - a x i s
+set(hline1,'LineWidth',2) ;
+set(hline2,'LineStyle','--','LineWidth',2);
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+figure
+[haxes,hline1,hline2]=plotyy(n_g,C_eq,n_g,q,'plot','plot'); 
+ylabel(haxes(1),'Capacitance')   %   l a b e l   l e f t   y - a x i s
+ylabel(haxes(2),'Quality Factor')   %   l a b e l   r i g h t   y - a x i s
+xlabel(haxes(2),'Carrier Concentration (x10^1^3)') %   l a b e l   x - a x i s
+set(hline1,'LineWidth',2) ;
+set(hline2,'LineStyle','--','LineWidth',2);
+legend('graphene','silicene','Linewidth',2);
+grid on;
+
+
+figure
+[haxes1,hline11,hline21]=plotyy(C_eq1,q1,C_eq1,tr1,'plot','plot'); 
+ylabel(haxes1(1),'Quality Factor')   %   l a b e l   l e f t   y - a x i s
+ylabel(haxes1(2),'Tuning Ratio')   %   l a b e l   r i g h t   y - a x i s
+xlabel(haxes1(2),'Capacitance') %   l a b e l   x - a x i s
+set(hline11,'LineWidth',2) ;
+set(hline21,'LineStyle','--','LineWidth',2);
+legend('graphene','silicene','Linewidth',2);
+
+grid on;
+figure
+[haxes1,hline11,hline21]=plotyy(n_g,C_eq1,n_g,q1,'plot','plot'); 
+ylabel(haxes1(1),'Capacitance')   %   l a b e l   l e f t   y - a x i s
+ylabel(haxes1(2),'Quanlity Factor')   %   l a b e l   r i g h t   y - a x i s
+xlabel(haxes1(2),'Carrier Concentration (x10^1^3)') %   l a b e l   x - a x i s
+set(hline11,'LineWidth',2) ;
+set(hline21,'LineStyle','--','LineWidth',2);
+legend('graphene','silicene','Linewidth',2);
+
+grid on;
+
+%-----------------------------------------------------------------------
+%                                  DNA
+%-----------------------------------------------------------------------
+
+%---------------------------------------------------------------------------------------------------------------------------
+%comlementary dry
+%----------------------------------------------------------------------------------------------------------------------------
+
+x=[0.00010143753645494129, 0.000999151694040151,0.010276087103831643, 0.10349285559426863, 0.9807456140178071, 10.49077337695976];
+
+y=[19.608510638297872, 20.272340425531915, 22.46808510638298, 24.03404255319149, 24.170212765957448, 25.029787234042548];
+
+semilogx(x,y,'Linewidth',2); 
+title('Carrier Concentration VS Concentration of DNA (nM)(Dry)');
+xlabel('Concentration of DNA (nM)')
+ylabel('Carrier Concentration (x10^1^3)')
+legend('Carrier Concentration (x10^1^3','Concentration of DNA (nM)','Linewidth',2);
+hold on
+grid on;
+
+%-------------------------------------------------------------------------------------------------------------------------
+ % mismatched (Dry)
+%------------------------------------------------------------------------------------------------------------------------
+
+y1=[5.670110669813855, 5.45788752102444, 5.303218329069558, 5.206103093949205, 5.367966530508402, 5.4938870121977095];
+
+semilogx(x,y1); 
+xlabel('Concentration of DNA (nM)')
+ylabel('Carrier Concentration (x10^1^3)')
+legend('Carrier Concentration (x10^1^3)','Concentration of DNA (nM)','Linewidth',2);
+grid on;
+%-------------------------------------------------------------------------------------------------------
+% complementary (PBS)
+%---------------------------------------------------------------------------------------------------
+
+x2=[0.0010205768129083375, 0.010090669378903768, 0.09981045083325299, 0.9852386248096394, 9.824660969959414];
+y2=[20.685926253544338, 22.01405769090953, 23.597608632430994, 23.929604003586753, 24.959779342267893];
+
+figure
+semilogx(x2,y2,'Linewidth',2); 
+ 
+title('Carrier Concentration VS Concentration of DNA (nM)');
+
+xlabel('Concentration of DNA (nM)')
+ylabel('Carrier Concentration (x10^1^3)')
+legend('Carrier Concentration (x10^1^3)','Concentration of DNA (nM)','Linewidth',2);
+
+hold on;
+grid on;
+%plotfit(x2,y2,1)
+
+%------------------------------------------------------------------------------------------------------
+% Mismatched
+%----------------------------------------------------------------------------------------------------
+
+
+
+y3=[5.314016763013954, 5.11616796935733, 5.040621333974082, 5.245650238159182, 5.42912467668302];
+
+semilogx(x2,y3,'Linewidth',2);
+title('Carrier Concentration VS Concentration of DNA (nM)(wet in PBS)');
+
+xlabel('Concentration of DNA (nM)')
+ylabel('Carrier Concentration (x10^1^3)')
+legend('Carrier Concentration (x10^1^3)','Concentration of DNA (nM)','Linewidth',2);
+
+grid on;
+
+
+%---------------------------------------------------------------
+%Regression
+%---------------------------------------------------------------
+
+
+
+
+x_reg=.001:10:100;
+%y_reg= (24.3167 + 2.303.*0.5004.*log(x_reg));
+%y_reg= 21.5203 + 0.7758.*log(x_reg); %website
+ 
+
+a =       -2.95;  
+b =     -0.1144 ; 
+c =       27.15 ;
+y_reg = a*x_reg.^b+c; %Matlab
+
+    %   a =       24.23  
+   %    b =     0.01621  
+  %     c =  -1.182e-15  
+ %      d =      -69.65  
+ %y_reg = a*exp(b*x_reg) + c*exp(d*x_reg) %Faltoo
+
+figure
+semilogx(x_reg,y_reg,'Linewidth',2) 
+grid on;
+%cftool
+
+figure
+plot(x_reg,y_reg,'Linewidth',2)
+%legend('silicene','graphene','Linewidth',2);
+grid on;
+%plotfit(x_reg,y_reg,1)
+
+% see only quantum capacitance
+% see regression DNA
